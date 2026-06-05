@@ -1,0 +1,39 @@
+services:
+  db:
+    image: postgres:16.4
+    container_name: orion-db-rm564995
+    environment:
+      POSTGRES_DB: ${POSTGRES_DB:-orion_db}
+      POSTGRES_USER: ${POSTGRES_USER:-orion_user}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-orion_pass}
+    ports:
+      - "5432:5432"
+    volumes:
+      - orion_postgres_data:/var/lib/postgresql/data
+    networks:
+      - orion_network
+
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: orion-app-rm564995
+    environment:
+      SPRING_PROFILES_ACTIVE: postgres
+      SPRING_DATASOURCE_URL: jdbc:postgresql://db:5432/${POSTGRES_DB:-orion_db}
+      SPRING_DATASOURCE_USERNAME: ${POSTGRES_USER:-orion_user}
+      SPRING_DATASOURCE_PASSWORD: ${POSTGRES_PASSWORD:-orion_pass}
+      SPRING_JPA_HIBERNATE_DDL_AUTO: update
+    ports:
+      - "8080:8080"
+    depends_on:
+      - db
+    networks:
+      - orion_network
+
+volumes:
+  orion_postgres_data:
+
+networks:
+  orion_network:
+    driver: bridge
