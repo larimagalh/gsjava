@@ -1,0 +1,73 @@
+<mxfile host="Electron" agent="Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) draw.io/27.0.5 Chrome/134.0.6998.205 Electron/35.3.0 Safari/537.36" version="27.0.5">
+  <diagram name="Arquitetura Macro" id="orion-beacon-v2">
+    <mxGraphModel dx="1830" dy="894" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="1400" pageHeight="850" math="0" shadow="0">
+      <root>
+        <mxCell id="0" />
+        <mxCell id="1" parent="0" />
+        <mxCell id="title" value="Arquitetura Macro em Nuvem - Project Orion Beacon" style="text;html=1;strokeColor=none;fillColor=none;align=center;verticalAlign=middle;whiteSpace=wrap;rounded=0;fontSize=26;fontStyle=1;fontColor=#0F172A;" parent="1" vertex="1">
+          <mxGeometry x="315" y="25" width="770" height="40" as="geometry" />
+        </mxCell>
+        <mxCell id="user" value="&lt;b&gt;Usuário&lt;/b&gt;&lt;br&gt;Acessa a API pela internet" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#DBEAFE;strokeColor=#2563EB;fontSize=15;align=center;verticalAlign=middle;spacing=10;" parent="1" vertex="1">
+          <mxGeometry x="60" y="140" width="210" height="90" as="geometry" />
+        </mxCell>
+        <mxCell id="tools" value="&lt;b&gt;Swagger / Postman / Navegador&lt;/b&gt;&lt;br&gt;Testes dos endpoints" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#DCFCE7;strokeColor=#16A34A;fontSize=15;align=center;verticalAlign=middle;spacing=10;" parent="1" vertex="1">
+          <mxGeometry x="330" y="140" width="250" height="90" as="geometry" />
+        </mxCell>
+        <mxCell id="internet" value="&lt;b&gt;Internet&lt;/b&gt;&lt;br&gt;Acesso pelo IP público" style="ellipse;whiteSpace=wrap;html=1;fillColor=#FFEDD5;strokeColor=#F97316;fontSize=15;align=center;verticalAlign=middle;spacing=10;" parent="1" vertex="1">
+          <mxGeometry x="655" y="135" width="210" height="100" as="geometry" />
+        </mxCell>
+        <mxCell id="azure" value="&lt;b&gt;Azure VM - Ubuntu&lt;/b&gt;&lt;br&gt;Ambiente em nuvem" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#EFF6FF;strokeColor=#0284C7;fontSize=17;fontStyle=1;align=center;verticalAlign=top;spacingTop=18;" parent="1" vertex="1">
+          <mxGeometry x="920" y="90" width="460" height="670" as="geometry" />
+        </mxCell>
+        <mxCell id="docker" value="&lt;b&gt;Docker Engine +&amp;nbsp;Docker Compos&lt;/b&gt;e&lt;br&gt;Gerencia app e banco" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#E0F2FE;strokeColor=#0284C7;fontSize=15;align=center;verticalAlign=middle;spacing=10;" parent="1" vertex="1">
+          <mxGeometry x="1010" y="160" width="275" height="80" as="geometry" />
+        </mxCell>
+        <mxCell id="network" value="&lt;b&gt;Docker Network: orion_network&lt;/b&gt;&lt;br&gt;Rede interna entre aplicação e banco" style="rounded=1;dashed=1;dashPattern=6 4;whiteSpace=wrap;html=1;fillColor=#FAF5FF;strokeColor=#9333EA;fontSize=15;align=center;verticalAlign=top;spacingTop=15;" parent="1" vertex="1">
+          <mxGeometry x="930" y="300" width="440" height="290" as="geometry" />
+        </mxCell>
+        <mxCell id="app" value="&lt;b&gt;Container App&lt;/b&gt;&lt;br&gt;Java Spring Boot&lt;br&gt;orion-app-rm564995&lt;br&gt;&lt;b&gt;Porta: 8080&lt;/b&gt;" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#DCFCE7;strokeColor=#16A34A;fontSize=14;align=center;verticalAlign=middle;spacing=8;" parent="1" vertex="1">
+          <mxGeometry x="940" y="395" width="120" height="105" as="geometry" />
+        </mxCell>
+        <mxCell id="db" value="&lt;b&gt;Container Banco&lt;/b&gt;&lt;br&gt;PostgreSQL 16.4&lt;br&gt;orion-db-rm564995&lt;br&gt;&lt;b&gt;Porta exposta: 5432&lt;/b&gt;" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#DBEAFE;strokeColor=#2563EB;fontSize=14;align=center;verticalAlign=middle;spacing=8;" parent="1" vertex="1">
+          <mxGeometry x="1210" y="390" width="150" height="115" as="geometry" />
+        </mxCell>
+        <mxCell id="volume" value="&lt;b&gt;Volume Nomeado&lt;/b&gt;&lt;br&gt;orion_postgres_data&lt;br&gt;Persistência do PostgreSQL" style="shape=cylinder3d;whiteSpace=wrap;boundedLbl=1;backgroundOutline=1;size=15;html=1;fillColor=#FEF3C7;strokeColor=#F59E0B;fontSize=14;align=center;verticalAlign=middle;spacing=8;" parent="1" vertex="1">
+          <mxGeometry x="1130" y="640" width="190" height="85" as="geometry" />
+        </mxCell>
+        <mxCell id="legend" value="&lt;b&gt;Legenda&lt;/b&gt;&lt;br&gt;8080: porta pública da API Spring Boot&lt;br&gt;5432: porta do PostgreSQL&lt;br&gt;orion_network: rede Docker compartilhada&lt;br&gt;orion_postgres_data: volume nomeado do&amp;nbsp;PostgreSQL" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#F8FAFC;strokeColor=#94A3B8;fontSize=14;align=left;verticalAlign=top;spacing=12;" parent="1" vertex="1">
+          <mxGeometry x="60" y="340" width="430" height="155" as="geometry" />
+        </mxCell>
+        <mxCell id="flow" value="&lt;b&gt;Fluxo principal:&lt;/b&gt; o avaliador acessa a API publicada na Azure pela porta 8080. A aplicação Java roda em container Docker e se comunica com o PostgreSQL pela rede interna &lt;b&gt;orion_network&lt;/b&gt;. O banco utiliza o volume nomeado &lt;b&gt;orion_postgres_data&lt;/b&gt; para manter os dados persistidos." style="rounded=1;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#CBD5E1;fontSize=15;align=left;verticalAlign=top;spacing=14;" parent="1" vertex="1">
+          <mxGeometry x="60" y="555" width="800" height="105" as="geometry" />
+        </mxCell>
+        <mxCell id="e1" value="" style="endArrow=block;html=1;rounded=0;strokeWidth=2;strokeColor=#334155;" parent="1" source="user" target="tools" edge="1">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e2" value="" style="endArrow=block;html=1;rounded=0;strokeWidth=2;strokeColor=#334155;" parent="1" source="tools" target="internet" edge="1">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e3" value="HTTP :8080" style="endArrow=block;html=1;rounded=0;strokeWidth=2;strokeColor=#334155;fontSize=13;fontStyle=1;" parent="1" source="internet" target="azure" edge="1">
+          <mxGeometry relative="1" as="geometry">
+            <mxPoint x="900" y="235" as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="e4" value="executa" style="endArrow=block;html=1;rounded=0;strokeWidth=2;strokeColor=#0284C7;fontSize=13;" parent="1" source="docker" target="network" edge="1">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e5" value="&lt;font style=&quot;font-size: 12px;&quot;&gt;JDBC via orion_network&lt;/font&gt;" style="endArrow=block;startArrow=block;html=1;rounded=0;strokeWidth=2;strokeColor=#334155;fontSize=13;fontStyle=1;" parent="1" source="app" target="db" edge="1">
+          <mxGeometry y="-24" relative="1" as="geometry">
+            <mxPoint as="offset" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="e6" value="dados" style="endArrow=block;html=1;rounded=0;strokeWidth=2;strokeColor=#F97316;fontSize=13;" parent="1" source="db" target="volume" edge="1">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points">
+              <mxPoint x="1230" y="600" />
+              <mxPoint x="1228" y="630" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+      </root>
+    </mxGraphModel>
+  </diagram>
+</mxfile>
