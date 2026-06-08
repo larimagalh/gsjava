@@ -1,0 +1,7 @@
+### Criar corpo celeste
+POST http://localhost:8080/corpos-celestes
+Content-Type: application/json
+
+{
+  "nome": "Lua"
+}
