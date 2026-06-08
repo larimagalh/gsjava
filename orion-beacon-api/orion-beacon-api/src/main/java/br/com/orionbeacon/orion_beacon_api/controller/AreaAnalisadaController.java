@@ -1,5 +1,5 @@
 package br.com.orionbeacon.orion_beacon_api.controller;
-
+import jakarta.validation.Valid;
 import br.com.orionbeacon.orion_beacon_api.dto.AreaAnalisadaDTO;
 import br.com.orionbeacon.orion_beacon_api.entity.AreaAnalisada;
 import br.com.orionbeacon.orion_beacon_api.entity.Coordenada;
@@ -43,7 +43,7 @@ public class AreaAnalisadaController {
     }
 
     @PostMapping
-    public ResponseEntity<AreaAnalisada> criar(@RequestBody AreaAnalisadaDTO dto) {
+    public ResponseEntity<AreaAnalisada> criar(@Valid @RequestBody AreaAnalisadaDTO dto) {
         CorpoCeleste corpoCeleste = corpoCelesteService.buscarPorId(dto.corpoCelesteId());
 
         if (corpoCeleste == null) {
@@ -64,7 +64,7 @@ public class AreaAnalisadaController {
     @PutMapping("/{id}")
     public ResponseEntity<AreaAnalisada> atualizar(
             @PathVariable Long id,
-            @RequestBody AreaAnalisadaDTO dto
+            @Valid @RequestBody AreaAnalisadaDTO dto
     ) {
         AreaAnalisada existente = areaService.buscarPorId(id);
 

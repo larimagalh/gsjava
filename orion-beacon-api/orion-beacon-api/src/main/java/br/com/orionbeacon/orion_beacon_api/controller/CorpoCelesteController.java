@@ -3,10 +3,15 @@ package br.com.orionbeacon.orion_beacon_api.controller;
 import br.com.orionbeacon.orion_beacon_api.dto.CorpoCelesteDTO;
 import br.com.orionbeacon.orion_beacon_api.entity.CorpoCeleste;
 import br.com.orionbeacon.orion_beacon_api.service.CorpoCelesteService;
+import jakarta.validation.Valid;
+import org.springframework.hateoas.EntityModel;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
+
+import static org.springframework.hateoas.server.mvc.WebMvcLinkBuilder.linkTo;
+import static org.springframework.hateoas.server.mvc.WebMvcLinkBuilder.methodOn;
 
 @RestController
 @RequestMapping("/corpos-celestes")
@@ -24,18 +29,23 @@ public class CorpoCelesteController {
     }
 
     @GetMapping("/{id}")
-    public ResponseEntity<CorpoCeleste> buscarPorId(@PathVariable Long id) {
+    public ResponseEntity<EntityModel<CorpoCeleste>> buscarPorId(@PathVariable Long id) {
         CorpoCeleste corpoCeleste = service.buscarPorId(id);
 
         if (corpoCeleste == null) {
             return ResponseEntity.notFound().build();
         }
 
-        return ResponseEntity.ok(corpoCeleste);
+        EntityModel<CorpoCeleste> resource = EntityModel.of(corpoCeleste);
+
+        resource.add(linkTo(methodOn(CorpoCelesteController.class).buscarPorId(id)).withSelfRel());
+        resource.add(linkTo(methodOn(CorpoCelesteController.class).listarTodos()).withRel("listar-corpos-celestes"));
+
+        return ResponseEntity.ok(resource);
     }
 
     @PostMapping
-    public ResponseEntity<CorpoCeleste> criar(@RequestBody CorpoCelesteDTO dto) {
+    public ResponseEntity<CorpoCeleste> criar(@Valid @RequestBody CorpoCelesteDTO dto) {
         CorpoCeleste corpoCeleste = new CorpoCeleste();
         corpoCeleste.setNome(dto.nome());
 
@@ -45,7 +55,7 @@ public class CorpoCelesteController {
     }
 
     @PutMapping("/{id}")
-    public ResponseEntity<CorpoCeleste> atualizar(@PathVariable Long id, @RequestBody CorpoCelesteDTO dto) {
+    public ResponseEntity<CorpoCeleste> atualizar(@PathVariable Long id, @Valid @RequestBody CorpoCelesteDTO dto) {
         CorpoCeleste existente = service.buscarPorId(id);
 
         if (existente == null) {

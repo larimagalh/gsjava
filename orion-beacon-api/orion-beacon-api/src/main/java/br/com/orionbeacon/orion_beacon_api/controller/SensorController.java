@@ -1,5 +1,5 @@
 package br.com.orionbeacon.orion_beacon_api.controller;
-
+import jakarta.validation.Valid;
 import br.com.orionbeacon.orion_beacon_api.dto.SensorDTO;
 import br.com.orionbeacon.orion_beacon_api.entity.Sensor;
 import br.com.orionbeacon.orion_beacon_api.service.SensorService;
@@ -35,7 +35,7 @@ public class SensorController {
     }
 
     @PostMapping
-    public ResponseEntity<Sensor> criar(@RequestBody SensorDTO dto) {
+    public ResponseEntity<Sensor> criar(@Valid @RequestBody SensorDTO dto) {
         Sensor sensor = new Sensor();
         sensor.setNome(dto.nome());
         sensor.setTipo(dto.tipo());
@@ -47,7 +47,7 @@ public class SensorController {
     }
 
     @PutMapping("/{id}")
-    public ResponseEntity<Sensor> atualizar(@PathVariable Long id, @RequestBody SensorDTO dto) {
+    public ResponseEntity<Sensor> atualizar(@PathVariable Long id,@Valid @RequestBody SensorDTO dto) {
         Sensor existente = service.buscarPorId(id);
 
         if (existente == null) {
