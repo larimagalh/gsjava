@@ -48,6 +48,7 @@ public class CorpoCelesteController {
     public ResponseEntity<CorpoCeleste> criar(@Valid @RequestBody CorpoCelesteDTO dto) {
         CorpoCeleste corpoCeleste = new CorpoCeleste();
         corpoCeleste.setNome(dto.nome());
+        corpoCeleste.setDescricao(dto.descricao());
 
         CorpoCeleste salvo = service.salvar(corpoCeleste);
 
@@ -63,6 +64,7 @@ public class CorpoCelesteController {
         }
 
         existente.setNome(dto.nome());
+        existente.setDescricao(dto.descricao());
 
         CorpoCeleste atualizado = service.salvar(existente);
 
