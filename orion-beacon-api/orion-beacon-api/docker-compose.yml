@@ -14,6 +14,7 @@ services:
       - orion_network
 
   app:
+    image: orion-beacon-api:1.0
     build:
       context: .
       dockerfile: Dockerfile
