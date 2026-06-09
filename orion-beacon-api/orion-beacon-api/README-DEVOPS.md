@@ -2,11 +2,11 @@
 
 ## Descrição da Solução
 
-O **Project Orion Beacon** é uma solução voltada para a identificação e priorização de áreas com possível presença de água na Lua e em Marte.
+O **Project Orion Beacon** é uma solução voltada para a identificação e priorização de áreas com possível presença de água na Lua, em Marte e em outros corpos celestes.
 
-A aplicação utiliza dados simulados de sensores orbitais para registrar áreas analisadas, armazenar leituras de sensores e consultar informações persistidas em banco de dados. A proposta apoia a escolha de regiões mais promissoras antes do envio de rovers, sondas ou equipamentos de exploração à superfície.
+A aplicação utiliza dados simulados de sensores orbitais para registrar corpos celestes, áreas analisadas, sensores, análises e leituras de sensores. A proposta apoia a escolha de regiões mais promissoras antes do envio de rovers, sondas ou equipamentos de exploração à superfície.
 
-Esta documentação apresenta a configuração de **DevOps**, utilizando Docker, Docker Compose, PostgreSQL e Azure VM.
+Esta documentação apresenta a configuração de **DevOps** do projeto, utilizando **Docker**, **Docker Compose**, **PostgreSQL** e **Azure VM**.
 
 ---
 
@@ -15,12 +15,13 @@ Esta documentação apresenta a configuração de **DevOps**, utilizando Docker,
 * Java 21
 * Spring Boot
 * Spring Data JPA
+* Swagger/OpenAPI
 * Oracle
 * PostgreSQL 16.4
 * Docker
 * Docker Compose
 * Azure VM
-* Swagger/OpenAPI
+* Bash Script
 
 ---
 
@@ -33,13 +34,13 @@ O projeto possui dois perfis de banco de dados:
 | `oracle`   | Oracle     | Execução local da aplicação Java |
 | `postgres` | PostgreSQL | Execução em Docker/DevOps        |
 
-O profile padrão é:
+O profile padrão da aplicação é:
 
 ```text
 oracle
 ```
 
-No ambiente Docker, o profile PostgreSQL é ativado no `docker-compose.yml` por meio da variável:
+No ambiente Docker, o profile PostgreSQL é ativado no `docker-compose.yml` por meio da variável de ambiente:
 
 ```text
 SPRING_PROFILES_ACTIVE=postgres
@@ -49,16 +50,22 @@ SPRING_PROFILES_ACTIVE=postgres
 
 ## Arquitetura DevOps
 
-A arquitetura DevOps utiliza uma máquina virtual Ubuntu na Azure executando dois containers Docker integrados na mesma rede:
+A arquitetura DevOps utiliza uma máquina virtual Ubuntu na Azure executando containers Docker por meio do Docker Compose.
 
-* Container da aplicação Java Spring Boot.
-* Container do banco de dados PostgreSQL.
-* Volume nomeado para persistência dos dados.
-* Porta 8080 exposta para acesso à API.
-* Porta 5432 exposta para acesso ao banco PostgreSQL.
-* Rede Docker compartilhada entre aplicação e banco.
+A estrutura é composta por:
 
-A imagem da arquitetura macro será adicionada na pasta `docs`.
+* Resource Group na Azure: `rg-orion-beacon-devops`
+* VM Ubuntu: `vm-orion-beacon`
+* Docker Engine
+* Docker Compose
+* Container da aplicação Java Spring Boot
+* Container do banco PostgreSQL
+* Rede Docker compartilhada entre aplicação e banco
+* Volume nomeado para persistência dos dados
+* Porta `8080` exposta para acesso à API e ao Swagger
+* Porta `5432` exposta para acesso ao PostgreSQL
+
+Imagem da arquitetura macro:
 
 ```text
 docs/arquitetura-macro.png
@@ -74,7 +81,8 @@ orion-beacon-api/
 ├── docker-compose.yml
 ├── README-DEVOPS.md
 ├── docs/
-│   └── arquitetura-macro.png
+│   ├── arquitetura-macro.png
+│   └── arquitetura-macro.drawio
 └── scripts/
     ├── azure-create-vm.sh
     └── azure-delete-resources.sh
@@ -90,136 +98,273 @@ Principais pontos atendidos:
 
 * Utiliza Java 21.
 * Não utiliza imagem com tag `latest`.
-* Gera o `.jar` dentro do próprio processo de build.
-* Define diretório de trabalho com `WORKDIR`.
+* Gera o arquivo `.jar` no processo de build.
+* Define o diretório de trabalho com `WORKDIR`.
 * Executa a aplicação com usuário não privilegiado.
-* Expõe a porta 8080.
+* Expõe a porta `8080`.
+* Executa a aplicação por meio do arquivo `app.jar`.
+
+A imagem da aplicação é versionada como:
+
+```text
+orion-beacon-api:1.0
+```
 
 ---
 
 ## Docker Compose
 
-O arquivo `docker-compose.yml` cria dois containers:
+O arquivo `docker-compose.yml` cria e orquestra os serviços do projeto.
 
-| Container            | Função                     | Porta |
-| -------------------- | -------------------------- | ----- |
-| `orion-app-rm564995` | Aplicação Java Spring Boot | 8080  |
-| `orion-db-rm564995`  | Banco PostgreSQL           | 5432  |
+| Serviço | Container            | Função               | Imagem                 | Porta  |
+| ------- | -------------------- | -------------------- | ---------------------- | ------ |
+| `app`   | `orion-app-rm564995` | API Java Spring Boot | `orion-beacon-api:1.0` | `8080` |
+| `db`    | `orion-db-rm564995`  | Banco PostgreSQL     | `postgres:16.4`        | `5432` |
 
 Também são configurados:
 
-* Rede Docker `orion_network`.
-* Volume nomeado `orion_postgres_data`.
-* Variáveis de ambiente para o banco e para a aplicação.
+* Rede Docker do projeto.
+* Volume nomeado do PostgreSQL.
+* Variáveis de ambiente para banco e aplicação.
 * Profile `postgres` para execução no ambiente Docker.
+* Containers nomeados com o RM do representante DevOps.
 
----
-
-## Como Executar Localmente com Docker
-
-Na pasta onde está o `docker-compose.yml`, execute:
-
-```bash
-docker compose up -d --build
-```
-
-Esse comando constrói a imagem da aplicação Java e sobe os containers em segundo plano.
-
----
-
-## Verificar Containers em Execução
-
-```bash
-docker ps
-```
-
-Devem aparecer os containers:
+Nomes reais gerados pelo Docker Compose:
 
 ```text
-orion-app-rm564995
-orion-db-rm564995
+Rede:   orion-beacon-api_orion_network
+Volume: orion-beacon-api_orion_postgres_data
 ```
 
 ---
 
-## Visualizar Logs dos Containers
+# How To - Como Executar a Demonstração
 
-Logs da aplicação:
+## 1. Clonar o repositório
+
+No Azure Cloud Shell ou Git Bash:
 
 ```bash
-docker compose logs app
+git clone https://github.com/larimagalh/gsjava.git
 ```
 
-Logs do banco:
+Entrar na pasta da aplicação:
 
 ```bash
-docker compose logs db
+cd gsjava/orion-beacon-api/orion-beacon-api
+```
+
+Conferir os arquivos principais:
+
+```bash
+ls
+ls scripts
+ls docs
 ```
 
 ---
 
-## Acesso à Aplicação
+## 2. Criar infraestrutura na Azure
 
-Localmente:
+Executar o script de criação:
 
-```text
-http://localhost:8080
+```bash
+bash scripts/azure-create-vm.sh
 ```
 
-Swagger local:
+Esse script realiza:
+
+* Criação do Resource Group `rg-orion-beacon-devops`.
+* Criação da VM Ubuntu `vm-orion-beacon`.
+* Abertura da porta `8080` para a API.
+* Abertura da porta `5432` para o PostgreSQL.
+* Instalação de Docker, Docker Compose e Git.
+* Clone do repositório dentro da VM.
+* Execução do `docker compose up -d --build`.
+
+Ao final, o terminal exibe:
 
 ```text
-http://localhost:8080/swagger-ui/index.html
-```
-
-Na Azure, substituir `localhost` pelo IP público da VM:
-
-```text
-http://IP_DA_VM:8080/swagger-ui/index.html
+IP público da aplicação
+Link do Swagger
+Comando SSH
 ```
 
 ---
 
-## Evidências do Container da Aplicação
+## 3. Mostrar VM, Resource Group e IP público
 
-Acessar o container da aplicação:
+No Azure Cloud Shell:
 
 ```bash
-docker container exec -it orion-app-rm564995 sh
+az vm list-ip-addresses --resource-group rg-orion-beacon-devops --name vm-orion-beacon --output table
 ```
 
-Dentro do container, executar:
+Esse comando mostra a VM criada, o IP público e o IP privado.
+
+O IP público é utilizado para acessar a API e o Swagger pela internet:
+
+```text
+http://IP_PUBLICO:8080/swagger-ui/index.html
+```
+
+---
+
+## 4. Acessar a VM
+
+No Azure Cloud Shell:
+
+```bash
+ssh gu564995@IP_PUBLICO
+```
+
+Caso seja solicitada confirmação:
+
+```bash
+yes
+```
+
+---
+
+## 5. Verificar containers e serviços pelo Docker Compose
+
+Dentro da VM:
+
+```bash
+sudo docker compose -f ~/gsjava/orion-beacon-api/orion-beacon-api/docker-compose.yml ps
+```
+
+Esse comando mostra os serviços definidos no Docker Compose e os containers criados a partir deles:
+
+* Serviço `app`: container `orion-app-rm564995`
+* Serviço `db`: container `orion-db-rm564995`
+
+Também são exibidas as imagens utilizadas, o status `Up` e as portas expostas.
+
+---
+
+## 6. Verificar logs filtrados da aplicação
+
+```bash
+sudo docker logs orion-app-rm564995 2>&1 | grep -E "Tomcat started|Started OrionBeaconApiApplication|Initialized JPA"
+```
+
+Esse comando mostra apenas as principais evidências de inicialização da aplicação:
+
+* JPA inicializado.
+* Tomcat iniciado na porta `8080`.
+* Aplicação Spring Boot iniciada corretamente.
+
+---
+
+## 7. Verificar logs filtrados do PostgreSQL
+
+```bash
+sudo docker logs orion-db-rm564995 2>&1 | grep -E "PostgreSQL|ready to accept connections"
+```
+
+Esse comando mostra que o PostgreSQL iniciou corretamente e está pronto para receber conexões.
+
+---
+
+## 8. Verificar volume e rede Docker
+
+Listar volumes:
+
+```bash
+sudo docker volume ls
+```
+
+Volume esperado:
+
+```text
+orion-beacon-api_orion_postgres_data
+```
+
+Esse volume é utilizado pelo PostgreSQL para manter os dados persistidos.
+
+Listar redes:
+
+```bash
+sudo docker network ls
+```
+
+Rede esperada:
+
+```text
+orion-beacon-api_orion_network
+```
+
+Essa rede permite a comunicação interna entre o container da aplicação Java e o container do PostgreSQL.
+
+---
+
+## 9. Entrar no container da aplicação
+
+```bash
+sudo docker container exec -it orion-app-rm564995 sh
+```
+
+Dentro do container:
 
 ```bash
 whoami
-pwd
 ls -l
 exit
 ```
 
 Esses comandos demonstram:
 
-* Usuário conectado no container.
-* Diretório atual.
-* Estrutura de arquivos da aplicação.
+* O usuário que executa a aplicação dentro do container.
+* A presença do arquivo `app.jar`.
+* A execução da aplicação em um ambiente isolado.
+
+O usuário esperado é:
+
+```text
+orionuser
+```
 
 ---
 
-## Evidências do Container do Banco
+## 10. Testar a API pelo Swagger
 
-Acessar o container do PostgreSQL:
+Acessar no navegador:
 
-```bash
-docker container exec -it orion-db-rm564995 bash
+```text
+http://IP_PUBLICO:8080/swagger-ui/index.html
 ```
 
-Entrar no banco:
+A ordem sugerida para teste é:
+
+```text
+Corpo Celeste → Área Analisada → Sensor → Análise → Leitura Sensor
+```
+
+Operações demonstradas:
+
+* `POST`: cadastrar registros.
+* `GET`: consultar/listar registros.
+* `PUT`: atualizar registros.
+* `DELETE`: remover registros.
+
+---
+
+## 11. Acessar o banco PostgreSQL
+
+Entrar no container do banco:
+
+```bash
+sudo docker container exec -it orion-db-rm564995 bash
+```
+
+Entrar no PostgreSQL:
 
 ```bash
 psql -U orion_user -d orion_db
 ```
 
-Listar as tabelas:
+Listar tabelas:
 
 ```sql
 \dt
@@ -228,8 +373,35 @@ Listar as tabelas:
 Consultar dados persistidos:
 
 ```sql
-SELECT * FROM area_analisada;
-SELECT * FROM leitura_sensor;
+SELECT * FROM tb_corpo_celeste;
+SELECT * FROM tb_area_analisada;
+SELECT * FROM tb_sensor;
+SELECT * FROM tb_analise;
+SELECT * FROM tb_leitura_sensor;
+```
+
+Consultar relacionamento entre as tabelas:
+
+```sql
+SELECT
+    c.nome AS corpo_celeste,
+    ar.nome AS area_analisada,
+    ar.regiao,
+    an.classificacao,
+    an.observacao,
+    s.nome AS sensor,
+    s.tipo,
+    l.valor,
+    l.interpretacao
+FROM tb_corpo_celeste c
+INNER JOIN tb_area_analisada ar
+    ON ar.corpo_celeste_id = c.id
+INNER JOIN tb_analise an
+    ON an.area_id = ar.id
+INNER JOIN tb_leitura_sensor l
+    ON l.analise_id = an.id
+INNER JOIN tb_sensor s
+    ON l.sensor_id = s.id;
 ```
 
 Sair do PostgreSQL:
@@ -246,15 +418,60 @@ exit
 
 ---
 
+## 12. Remover recursos da Azure
+
+No Azure Cloud Shell, sair da VM se necessário:
+
+```bash
+exit
+```
+
+Entrar na pasta do projeto:
+
+```bash
+cd ~/gsjava/orion-beacon-api/orion-beacon-api
+```
+
+Executar o script de remoção:
+
+```bash
+bash scripts/azure-delete-resources.sh
+```
+
+
+## Acesso à Aplicação
+
+Localmente:
+
+```text
+http://localhost:8080
+```
+
+Swagger local:
+
+```text
+http://localhost:8080/swagger-ui/index.html
+```
+
+Na Azure:
+
+```text
+http://IP_PUBLICO:8080/swagger-ui/index.html
+```
+
+---
+
 ## Persistência de Dados
 
 O PostgreSQL utiliza o volume nomeado:
 
 ```text
-orion_postgres_data
+orion-beacon-api_orion_postgres_data
 ```
 
-Esse volume mantém os dados armazenados mesmo após parar ou recriar os containers.
+Esse volume mantém os dados armazenados mesmo após parar ou recriar os containers, desde que o volume não seja removido.
+
+Na demonstração, a persistência também é comprovada por meio de consultas diretas no PostgreSQL usando `SELECT`.
 
 ---
 
@@ -272,69 +489,33 @@ scripts/
 bash scripts/azure-create-vm.sh
 ```
 
-Esse script realiza:
-
-* Criação do Resource Group.
-* Criação da VM Ubuntu.
-* Abertura da porta 8080 para a API.
-* Abertura da porta 5432 para o PostgreSQL.
-* Instalação de Docker, Docker Compose e Git.
-* Clone do repositório.
-* Execução do `docker compose up -d --build`.
-
 ### Remover recursos da Azure
 
 ```bash
 bash scripts/azure-delete-resources.sh
 ```
 
-Esse script remove o Resource Group criado para o projeto, apagando VM, disco, IP público, rede e demais recursos associados.
-
 ---
 
-## Execução em Nuvem
-
-A aplicação será executada em uma VM Ubuntu na Azure.
-
-Após a execução do script, o terminal exibirá:
-
-```text
-IP público da aplicação: http://IP_DA_VM:8080
-Swagger: http://IP_DA_VM:8080/swagger-ui/index.html
-PostgreSQL: IP_DA_VM:5432
-SSH: ssh gu564995@IP_DA_VM
-```
-
----
-
-## Boas Práticas Aplicadas
-
-* Não foi utilizada tag `latest` nas imagens Docker.
-* PostgreSQL fixado na versão `16.4`.
-* Aplicação Java executada com usuário não privilegiado.
-* Diretório de trabalho definido no Dockerfile.
-* Banco PostgreSQL com volume nomeado.
-* Aplicação e banco executando na mesma rede Docker.
-* Configuração por variáveis de ambiente.
-* Containers nomeados com o RM do representante DevOps.
-* Execução em background com Docker Compose.
-* Scripts de criação e remoção do ambiente em nuvem.
-
----
 
 ## Comandos Principais para Demonstração
 
 ```bash
-docker compose up -d --build
-docker ps
-docker compose logs app
-docker compose logs db
-docker container exec -it orion-app-rm564995 sh
-docker container exec -it orion-db-rm564995 bash
+bash scripts/azure-create-vm.sh
+az vm list-ip-addresses --resource-group rg-orion-beacon-devops --name vm-orion-beacon --output table
+ssh gu564995@IP_PUBLICO
+sudo docker compose -f ~/gsjava/orion-beacon-api/orion-beacon-api/docker-compose.yml ps
+sudo docker logs orion-app-rm564995 2>&1 | grep -E "Tomcat started|Started OrionBeaconApiApplication|Initialized JPA"
+sudo docker logs orion-db-rm564995 2>&1 | grep -E "PostgreSQL|ready to accept connections"
+sudo docker volume ls
+sudo docker network ls
+sudo docker container exec -it orion-app-rm564995 sh
+sudo docker container exec -it orion-db-rm564995 bash
+bash scripts/azure-delete-resources.sh
 ```
 
 ---
 
 ## Observação
 
-O banco PostgreSQL é utilizado para a entrega de DevOps. O Oracle permanece configurado como profile padrão para preservar a execução local da aplicação Java.
+O banco PostgreSQL é utilizado para a entrega de DevOps em Docker e Azure. O Oracle permanece configurado como profile padrão para preservar a execução local da aplicação Java.
