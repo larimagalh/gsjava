@@ -51,7 +51,7 @@ public class AreaAnalisadaController {
         }
 
         AreaAnalisada area = new AreaAnalisada();
-        area.setNome(dto.nome());
+        area.setNome_area(dto.nome());
         area.setRegiao(dto.regiao());
         area.setCoordenada(new Coordenada(dto.latitude(), dto.longitude()));
         area.setCorpoCeleste(corpoCeleste);
@@ -78,7 +78,7 @@ public class AreaAnalisadaController {
             return ResponseEntity.badRequest().build();
         }
 
-        existente.setNome(dto.nome());
+        existente.setNome_area(dto.nome());
         existente.setRegiao(dto.regiao());
         existente.setCoordenada(new Coordenada(dto.latitude(), dto.longitude()));
         existente.setCorpoCeleste(corpoCeleste);
