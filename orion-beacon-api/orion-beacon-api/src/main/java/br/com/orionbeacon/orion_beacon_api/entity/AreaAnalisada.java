@@ -21,7 +21,7 @@ public class AreaAnalisada {
     @Column(name = "ID_AREA")
     private Long id;
 
-    private String nome;
+    private String nome_area;
 
     private String regiao;
 
