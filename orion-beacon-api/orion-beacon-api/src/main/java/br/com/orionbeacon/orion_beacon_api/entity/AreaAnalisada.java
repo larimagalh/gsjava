@@ -12,13 +12,7 @@ import lombok.*;
 public class AreaAnalisada {
 
     @Id
-    @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "area_seq")
-    @SequenceGenerator(
-        name = "area_seq",
-        sequenceName = "SQ_AREA_ANALISADA",
-        allocationSize = 1
-    )
-    @Column(name = "ID_AREA")
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
     @Column(name = "NOME_AREA")
